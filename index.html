@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heal POC: absent vs broken</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:#f4f5f7;color:#222}
+  header{padding:14px 16px;background:#1f2937;color:#fff;font-weight:600}
+  .wrap{padding:16px}
+  .card{background:#fff;border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .full{position:fixed;inset:0;width:100%;height:100%}
+  #vw_overlay_modal_container{background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:50}
+  .modal{background:#fff;border-radius:12px;padding:20px;width:80%;max-width:360px}
+  #activity_indicator{z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7)}
+  .spin{width:40px;height:40px;border:4px solid #ddd;border-top-color:#2563eb;border-radius:50%;animation:r 1s linear infinite}
+  @keyframes r{to{transform:rotate(360deg)}}
+  button{padding:10px 16px;border-radius:8px;border:0;background:#2563eb;color:#fff;font-size:15px}
+  #consent{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;padding:14px;z-index:40}
+  .bare{width:100%;min-height:24px}
+  #state{font-size:12px;color:#666}
+</style>
+</head>
+<body>
+<header>Heal POC · absent vs broken locator</header>
+<div class="wrap">
+  <div class="card">
+    <div id="state"></div>
+    <p>Cases: A overlay (bare full-screen container), B spinner (bare, transient), C consent button (distinctive text), D primary button (locator changes = the "broken locator" control).</p>
+    <button id="btn_primary" type="button">Continue</button>
+  </div>
+  <!-- look-alike bare containers: full-width divs with no id/class/text, several levels deep -->
+  <div class="card"><div class="bare"><div class="bare"><div class="bare"><div class="bare"></div></div></div></div></div>
+  <div class="card"><div class="bare"><div class="bare"><div class="bare"></div></div></div></div>
+  <div class="card"><div class="bare"><div class="bare"><div class="bare"><div class="bare"><div class="bare"></div></div></div></div></div></div>
+  <div class="card"><div class="bare"><div class="bare"></div></div></div>
+  <div class="card"><p>Filler text so the page has some real content: orders, cart, delivery, helpline.</p><div class="bare"><div class="bare"><div class="bare"></div></div></div></div>
+  <div id="heavy"></div>
+</div>
+<script>
+(function(){
+  const q = new URLSearchParams(location.search);
+  const on = k => q.get(k) === '1';
+  const btn = q.get('btn') || 'v1';
+  const parts = [];
+  if (btn === 'v2') { const b = document.getElementById('btn_primary'); b.id = 'btn_primary_v2'; }
+  if (on('overlay')) {
+    const o = document.createElement('div'); o.id = 'vw_overlay_modal_container'; o.className = 'full';
+    o.innerHTML = '<div class="modal"><div><div><div>Store selector</div><div><div>Pick a store to continue</div></div></div></div></div>';
+    document.body.appendChild(o); parts.push('overlay');
+  }
+  if (on('spinner')) {
+    const s = document.createElement('div'); s.id = 'activity_indicator'; s.className = 'full'; s.setAttribute('role','progressbar');
+    s.innerHTML = '<div class="spin"></div>'; document.body.appendChild(s); parts.push('spinner');
+  }
+  if (on('consent')) {
+    const c = document.createElement('div'); c.id = 'consent';
+    c.innerHTML = 'We use cookies. <button id="accept_all" type="button">ACCEPT ALL</button>'; document.body.appendChild(c); parts.push('consent');
+  }
+  if (on('heavy')) {
+    // Case E: inflate element attribute size so a 50-element chunk exceeds the embedding input limit.
+    const h = document.getElementById('heavy'); const pad = 'x'.repeat(1400);
+    for (let i = 0; i < 60; i++) { const d = document.createElement('div'); d.className = 'bare'; d.setAttribute('data-blob', pad + i); h.appendChild(d); }
+    parts.push('heavy');
+  }
+  document.getElementById('state').textContent = 'state: btn=' + btn + ' ' + (parts.length ? parts.join('+') : 'nothing transient');
+})();
+</script>
+</body>
+</html>
