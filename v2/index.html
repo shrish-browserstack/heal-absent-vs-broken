@@ -22,7 +22,7 @@
 </style>
 </head>
 <body>
-<header>Heal POC · absent vs broken locator · v2</header>
+<header>Heal POC · absent vs broken locator · v3</header>
 <div class="wrap">
   <div class="card">
     <div id="state"></div>
@@ -66,20 +66,22 @@
   const q = new URLSearchParams(location.search);
   const on = k => q.get(k) === '1';
   const btn = q.get('btn') || 'v1';
+  const tag = q.get('tag') ? '_' + q.get('tag').replace(/[^a-z0-9]/gi,'') : '';
+  const T = id => id + tag;
   const parts = [];
-  if (btn === 'v2') { const b = document.getElementById('btn_primary'); b.id = 'btn_primary_v2'; }
+  { const b = document.getElementById('btn_primary'); b.id = T(btn === 'v2' ? 'btn_primary_v2' : 'btn_primary'); }
   if (on('overlay')) {
-    const o = document.createElement('div'); o.id = 'vw_overlay_modal_container'; o.className = 'full';
+    const o = document.createElement('div'); o.id = T('vw_overlay_modal_container'); o.className = 'full';
     o.innerHTML = '<div class="modal"><div><div><div>Store selector</div><div><div>Pick a store to continue</div></div></div></div></div>';
     document.body.appendChild(o); parts.push('overlay');
   }
   if (on('spinner')) {
-    const s = document.createElement('div'); s.id = 'activity_indicator'; s.className = 'full'; s.setAttribute('role','progressbar');
+    const s = document.createElement('div'); s.id = T('activity_indicator'); s.className = 'full'; s.setAttribute('role','progressbar');
     s.innerHTML = '<div class="spin"></div>'; document.body.appendChild(s); parts.push('spinner');
   }
   if (on('consent')) {
     const c = document.createElement('div'); c.id = 'consent';
-    c.innerHTML = 'We use cookies. <button id="accept_all" type="button">ACCEPT ALL</button>'; document.body.appendChild(c); parts.push('consent');
+    c.innerHTML = 'We use cookies. <button id="' + T('accept_all') + '" type="button">ACCEPT ALL' + (tag ? ' ' + tag.slice(1).toUpperCase() : '') + '</button>'; document.body.appendChild(c); parts.push('consent');
   }
   if (on('heavy')) {
     // Case E: inflate element attribute size so a 50-element chunk exceeds the embedding input limit.
@@ -87,7 +89,7 @@
     for (let i = 0; i < 60; i++) { const d = document.createElement('div'); d.className = 'bare'; d.setAttribute('data-blob', pad + i); h.appendChild(d); }
     parts.push('heavy');
   }
-  document.getElementById('state').textContent = 'state: btn=' + btn + ' ' + (parts.length ? parts.join('+') : 'nothing transient');
+  document.getElementById('state').textContent = 'state: tag=' + (tag||'-') + ' btn=' + btn + ' ' + (parts.length ? parts.join('+') : 'nothing transient');
 })();
 </script>
 </body>
